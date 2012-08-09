@@ -1,0 +1,6 @@
+simrf example project, MRF24J40MA connected to a PJRC.com Teensy 2.0 board.
+
+SPI connected "normally"
+Reset is connected to PB4
+INT to the INT0 pin (PD0)
+
