@@ -1,0 +1,11 @@
+*.o
+*.elf
+*.hex
+*.eep
+*.lss
+*.map
+*.lst
+*.sym
+/lib/nbproject/private/
+/examples/avr/teensy2-basic/nbproject/private/
+/examples/avr/teensy2-basic/.dep/
