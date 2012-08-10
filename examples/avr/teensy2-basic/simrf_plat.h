@@ -14,14 +14,10 @@ extern "C" {
 
     /**
      * You can also just set up the function pointers yourself.
-     * This is just one way of doing it.
-     * @param reset_port eg, PORTB
-     * @param reset_pin eg, PINB2
-     * @param cs_port eg, PORTB
-     * @param cs_pin eg, PINB4
      */
-void platform_simrf_init(volatile uint8_t *reset_port, uint8_t reset_pin, volatile uint8_t *cs_port, uint8_t cs_pin);
-
+void platform_simrf_init(void);
+void platform_mrf_interrupt_disable(void);
+void platform_mrf_interrupt_enable(void);
 
 #ifdef	__cplusplus
 }

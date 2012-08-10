@@ -9,15 +9,44 @@
 #include <string.h>
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #include "simrf.h"
 #include "simrf_plat.h"
 
+#define MRF_RESET_DDR DDRB
+#define MRF_RESET_PORT PORTB
+#define MRF_RESET_PIN PINB4
+#define MRF_CS_DDR DDRB
+#define MRF_CS_PORT PORTB
+#define MRF_CS_PIN PINB0
+
+#define MRF_RESET_CONFIG  (MRF_RESET_DDR |= (1<<MRF_RESET_PIN))
+#define MRF_CS_CONFIG  (MRF_CS_DDR |= (1<<MRF_CS_PIN))
+
+#define SPI_DDR     DDRB
+#define SPI_MISO        PINB3
+#define SPI_MOSI        PINB2
+#define SPI_SCLK        PINB1
+
+
 static volatile uint8_t *mrf_reset_port;
 static uint8_t mrf_reset_pin;
 static volatile uint8_t *mrf_cs_port;
 static uint8_t mrf_cs_pin;
+
+void platform_mrf_interrupt_disable(void) {
+    EIMSK &= ~(_BV(INT0));
+}
+
+void platform_mrf_interrupt_enable(void) {
+    EIMSK |= _BV(INT0);
+}
+
+ISR(INT0_vect) {
+    mrf_interrupt_handler();
+}
 
 static void plat_select(bool value) {
     if (value) {
@@ -34,6 +63,19 @@ static void plat_reset(bool value) {
         *mrf_reset_port |= (_BV(mrf_reset_pin));
     }
 }
+
+
+void init_spi(void) {
+    // outputs, also for the /SS pin, to stop it from flicking to slave
+    SPI_DDR |= _BV(SPI_MOSI) | _BV(SPI_SCLK) | _BV(MRF_CS_PIN);
+    /* Enable SPI, Master, set clock rate fck/4 */
+    SPCR = (1 << SPE) | (1 << MSTR);
+    // So, that's either 4Mhz, or 2Mhz, depending on whether Fosc is
+    // 16mhz crystal, or 8mhz clock prescaled?
+    // If I can read the mrf24j sheet properly, this should work right
+    // up to 10Mhz, but let's not push it.... (yet)
+}
+
 
 /**
  * Internal spi handling, works on both avr tiny, with USI,
@@ -71,11 +113,15 @@ static inline void plat_delay_ms(int value) {
     _delay_ms(value);
 }
 
-void platform_simrf_init(volatile uint8_t *reset_port, uint8_t reset_pin, volatile uint8_t *cs_port, uint8_t cs_pin) {
-    mrf_reset_port = reset_port;
-    mrf_reset_pin = reset_pin;
-    mrf_cs_port = cs_port;
-    mrf_cs_pin = cs_pin;
+void platform_simrf_init(void) {
+    MRF_RESET_CONFIG;
+    MRF_CS_CONFIG;
+    init_spi();
+    
+    mrf_reset_port = &MRF_RESET_PORT;
+    mrf_reset_pin = MRF_RESET_PIN;
+    mrf_cs_port = &MRF_CS_PORT;
+    mrf_cs_pin = MRF_CS_PIN;
     
     struct simrf_platform plat;
     memset(&plat, 0, sizeof(plat));

@@ -17,34 +17,7 @@
 #include "simrf.h"
 #include "simrf_plat.h"
 
-#define MRF_RESET_DDR DDRB
-#define MRF_RESET_PORT PORTB
-#define MRF_RESET_PIN PINB4
-#define MRF_CS_DDR DDRB
-#define MRF_CS_PORT PORTB
-#define MRF_CS_PIN PINB0
-
-#define MRF_RESET_CONFIG  (MRF_RESET_DDR |= (1<<MRF_RESET_PIN))
-#define MRF_CS_CONFIG  (MRF_CS_DDR |= (1<<MRF_CS_PIN))
-
-#define SPI_DDR     DDRB
-#define SPI_MISO        PINB3
-#define SPI_MOSI        PINB2
-#define SPI_SCLK        PINB1
-
 static FILE mystdout = {0};
-
-
-void SPI_MasterInit(void) {
-    // outputs, also for the /SS pin, to stop it from flicking to slave
-    SPI_DDR |= _BV(SPI_MOSI) | _BV(SPI_SCLK) | _BV(MRF_CS_PIN);
-    /* Enable SPI, Master, set clock rate fck/4 */
-    SPCR = (1 << SPE) | (1 << MSTR);
-    // So, that's either 4Mhz, or 2Mhz, depending on whether Fosc is
-    // 16mhz crystal, or 8mhz clock prescaled?
-    // If I can read the mrf24j sheet properly, this should work right
-    // up to 10Mhz, but let's not push it.... (yet)
-}
 
 static int uart_putchar(char c, FILE* stream) {
     return usb_debug_putchar(c);
@@ -55,12 +28,10 @@ void init(void) {
     fdev_setup_stream(&mystdout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
     stdout = &mystdout;
     usb_init();
-    MRF_RESET_CONFIG;
-    MRF_CS_CONFIG;
-    SPI_MasterInit();
+    platform_simrf_init();
 
     // interrupt pin from mrf
-    EIMSK |= (1<<INT0);
+    platform_mrf_interrupt_enable();
 
     while (!usb_configured()) {
     }
@@ -69,19 +40,8 @@ void init(void) {
     _delay_ms(500);
 }
 
-static inline void mrf_interrupt_disable(void) {
-    EIMSK &= ~(_BV(INT0));
-}
-static inline void mrf_interrupt_enable(void) {
-    EIMSK |= _BV(INT0);
-}
-
-ISR(INT0_vect) {
-    mrf_interrupt_handler();
-}
-
 void handle_rx(mrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
-    mrf_interrupt_disable();
+    platform_mrf_interrupt_disable();
     printf_P(PSTR("Received a packet: %u bytes long\n"), rxinfo->frame_length);
     printf("headers:");
     switch (rxinfo->frame_type) {
@@ -149,7 +109,7 @@ void handle_rx(mrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
         printf("%02x,", rx_buffer[i]);
     }
     printf_P(PSTR("\nLQI/RSSI=%d/%d\n"), rxinfo->lqi, rxinfo->rssi);
-    mrf_interrupt_enable();
+    platform_mrf_interrupt_enable();
 }
 
 void handle_tx(mrf_tx_info_t *txinfo) {
@@ -164,7 +124,6 @@ int main(void) {
     init();
 
     printf_P(PSTR("woke up...woo\n"));
-    platform_simrf_init(&MRF_RESET_PORT, MRF_RESET_PIN, &MRF_CS_PORT, MRF_CS_PIN);
     simrf_hard_reset();
     simrf_init();
 
