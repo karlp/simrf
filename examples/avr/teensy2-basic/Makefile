@@ -44,9 +44,10 @@
 TARGET = demo
 
 PJRC_LIBS = pjrc
+SIMRF_LIBS = ../../../lib
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC =	$(TARGET).c simrf.c simrf_plat.c \
+SRC =	$(TARGET).c simrf_plat.c \
 	$(PJRC_LIBS)/usb_debug_only.c
 
 # MCU name, you MUST set this to match the board you are using
@@ -109,7 +110,7 @@ DEBUG = dwarf-2
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = $(PJRC_LIBS)
+EXTRAINCDIRS = $(PJRC_LIBS) $(SIMRF_LIBS)
 
 
 # Compiler flag to set the C Standard level.
@@ -237,7 +238,7 @@ MATH_LIB = -lm
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRALIBDIRS = 
+EXTRALIBDIRS = $(SIMRF_LIBS)
 
 
 
@@ -265,6 +266,7 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += $(EXTMEMOPTS)
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
+LDFLAGS += -lsimrf
 #LDFLAGS += -T linker_script.x
 
 

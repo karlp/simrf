@@ -20,10 +20,7 @@ CFLAGS+=-fno-common -mcpu=cortex-m3 -mthumb
 PREFIX=arm-none-eabi
 endif
 ifeq ($(CPU),atmega32u4)
-ifeq ($(F_CPU),)
-$(warning "F_CPU not defined for avr, this will go badly...")
-endif
-CFLAGS+=$(CFLAGS_AVR) -mmcu=$(CPU) -DF_CPU=$(F_CPU)
+CFLAGS+=$(CFLAGS_AVR) -mmcu=$(CPU)
 PREFIX=avr-
 endif
 
