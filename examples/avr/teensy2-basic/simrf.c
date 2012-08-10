@@ -141,6 +141,7 @@ void mrf_send16(uint16_t dest16, uint8_t len, char * data) {
     mrf_write_long(i++, src16 & 0xff); // src16 low
     mrf_write_long(i++, src16 >> 8); // src16 high
 
+    // MASSIVE FIXME - see the blog for commentary on this!!!
     i+=2;  // All testing seems to indicate that the next two bytes are ignored.
     for (int q = 0; q < len; q++) {
         mrf_write_long(i++, data[q]);
