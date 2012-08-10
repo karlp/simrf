@@ -17,9 +17,10 @@
 #include "simrf.h"
 #include "simrf_plat.h"
 
-static FILE mystdout = {0};
+static FILE mystdout;
 
 static int uart_putchar(char c, FILE* stream) {
+    (void)stream;
     return usb_debug_putchar(c);
 }
 
@@ -40,7 +41,7 @@ void init(void) {
     _delay_ms(500);
 }
 
-void handle_rx(mrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
+void handle_rx(simrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
     platform_mrf_interrupt_disable();
     printf_P(PSTR("Received a packet: %u bytes long\n"), rxinfo->frame_length);
     printf("headers:");
@@ -83,7 +84,6 @@ void handle_rx(mrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
     uint8_t i = 0;
     uint16_t dest_pan = 0;
     uint16_t dest_id = 0;
-    uint16_t src_pan = 0;
     uint16_t src_id = 0;
     if (rxinfo->dest_addr_mode == MAC_ADDRESS_MODE_16
             && rxinfo->src_addr_mode == MAC_ADDRESS_MODE_16
@@ -112,7 +112,7 @@ void handle_rx(mrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
     platform_mrf_interrupt_enable();
 }
 
-void handle_tx(mrf_tx_info_t *txinfo) {
+void handle_tx(simrf_tx_info_t *txinfo) {
     if (txinfo->tx_ok) {
         printf_P(PSTR("TX went ok, got ack\n"));
     } else {
@@ -124,7 +124,8 @@ int main(void) {
     init();
 
     printf_P(PSTR("woke up...woo\n"));
-    simrf_hard_reset();
+    //simrf_hard_reset();
+    simrf_soft_reset();
     simrf_init();
 
     simrf_pan_write(0xcafe);
@@ -134,7 +135,7 @@ int main(void) {
     uint32_t roughness = 0;
     while (1) {
         roughness++;
-        mrf_check_flags(&handle_rx, &handle_tx);
+        simrf_check_flags(&handle_rx, &handle_tx);
         // about a second or so...
         if (roughness > 0x50000) {
             printf_P(PSTR("txxxing...\n"));

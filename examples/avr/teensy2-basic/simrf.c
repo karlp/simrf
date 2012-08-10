@@ -14,11 +14,15 @@ static uint8_t mrf_rx_buf[127];
 volatile uint8_t flag_got_rx;
 volatile uint8_t flag_got_tx;
 
-static mrf_rx_info_t mrf_rx_info;
-static mrf_tx_info_t mrf_tx_info;
+static simrf_rx_info_t mrf_rx_info;
+static simrf_tx_info_t mrf_tx_info;
 
 static struct simrf_platform platform;
 
+static uint8_t mrf_read_short(uint8_t address);
+static uint8_t mrf_read_long(uint16_t address);
+static void mrf_write_short(uint8_t address, uint8_t data);
+static void mrf_write_long(uint16_t address, uint8_t data);
 
 void simrf_setup(struct simrf_platform *ptrs) {
     assert(ptrs->select);
@@ -27,7 +31,6 @@ void simrf_setup(struct simrf_platform *ptrs) {
     //assert(ptrs->reset);  // reset is optional.
     memcpy(&platform, ptrs, sizeof(struct simrf_platform));
 }
-
 
 void simrf_hard_reset(void) {
     if (platform.reset) {
@@ -38,44 +41,11 @@ void simrf_hard_reset(void) {
     }
 }
 
-
-uint8_t mrf_read_short(uint8_t address) {
-    platform.select(true);
-    // 0 top for short addressing, 0 bottom for read
-    platform.spi_xfr(address<<1 & 0b01111110);
-    uint8_t res = platform.spi_xfr(0x0);
-    platform.select(false);
-    return res;
-}
-
-uint8_t mrf_read_long(uint16_t address) {
-    platform.select(true);
-    uint8_t ahigh = address >> 3;
-    uint8_t alow = address << 5;
-    platform.spi_xfr(0x80 | ahigh);  // high bit for long
-    platform.spi_xfr(alow);
-    uint8_t res = platform.spi_xfr(0);
-    platform.select(false);
-    return res;
-}
-
-
-void mrf_write_short(uint8_t address, uint8_t data) {
-    platform.select(true);
-    // 0 for top address, 1 bottom for write
-    platform.spi_xfr((address<<1 & 0b01111110) | 0x01);
-    platform.spi_xfr(data);
-    platform.select(false);
-}
-
-void mrf_write_long(uint16_t address, uint8_t data) {
-    platform.select(true);
-    uint8_t ahigh = address >> 3;
-    uint8_t alow = address << 5;
-    platform.spi_xfr(0x80 | ahigh);  // high bit for long
-    platform.spi_xfr(alow | 0x10);  // last bit for write
-    platform.spi_xfr(data);
-    platform.select(false);
+void simrf_soft_reset(void) {
+    mrf_write_short(MRF_SOFTRST, 0x7); // from manual
+    while ((mrf_read_short(MRF_SOFTRST) & 0x7) != 0) {
+        ; // wait for soft reset to finish
+    }
 }
 
 uint16_t simrf_pan_read(void) {
@@ -149,13 +119,6 @@ void mrf_set_channel(void) {
 }
 
 void simrf_init(void) {
-/*
- // Seems a bit ridiculous when I use reset pin anyway
-    mrf_write_short(MRF_SOFTRST, 0x7); // from manual
-    while (mrf_read_short(MRF_SOFTRST) & 0x7 != 0) {
-        ; // wait for soft reset to finish
-    }
-*/
     mrf_write_short(MRF_PACON2, 0x98); // – Initialize FIFOEN = 1 and TXONTS = 0x6.
     mrf_write_short(MRF_TXSTBL, 0x95); // – Initialize RFSTBL = 0x9.
 
@@ -181,19 +144,7 @@ void simrf_init(void) {
     platform.delay_ms(1);
 }
 
-/**
- * Call this from within an interrupt handler connected to the MRFs output
- * interrupt pin.  It handles reading in any data from the module, and letting it
- * continue working.
- * I haven't been able to reliably leave interrupts on, and throw away new packets
- * until the old one was read out by client software.  Until I can work that out,
- * I highly recommend disabling interrupts from module in your handle_rx callback.
- * Otherwise, you run the risk of having a new packet trample all over the current packet.
- * (TODO: why is this so hard to get right?!)
- *
- * Note, this is really only a problem in promiscuous mode...
- */
-void mrf_interrupt_handler(void) {
+void simrf_interrupt_handler(void) {
     uint8_t last_interrupt = mrf_read_short(MRF_INTSTAT);
     if (last_interrupt & MRF_I_RXIF) {
         flag_got_rx++;
@@ -234,11 +185,8 @@ void mrf_interrupt_handler(void) {
 }
 
 
-/**
- * Call this function periodically, it will invoke your nominated handlers
- */
-void mrf_check_flags(void (*rx_handler) (mrf_rx_info_t *rxinfo, uint8_t *rxbuffer),
-                     void (*tx_handler) (mrf_tx_info_t *txinfo)){
+void simrf_check_flags(void (*rx_handler) (simrf_rx_info_t *rxinfo, uint8_t *rxbuffer),
+                     void (*tx_handler) (simrf_tx_info_t *txinfo)){
     // TODO - we could check whether the flags are > 1 here, indicating data was lost?
     if (flag_got_rx) {
         flag_got_rx = 0;
@@ -250,5 +198,45 @@ void mrf_check_flags(void (*rx_handler) (mrf_rx_info_t *rxinfo, uint8_t *rxbuffe
             tx_handler(&mrf_tx_info);
         }
     }
+}
+
+/// PRIVATE INTERNALS
+static uint8_t mrf_read_short(uint8_t address) {
+    platform.select(true);
+    // 0 top for short addressing, 0 bottom for read
+    platform.spi_xfr(address<<1 & 0b01111110);
+    uint8_t res = platform.spi_xfr(0x0);
+    platform.select(false);
+    return res;
+}
+
+static uint8_t mrf_read_long(uint16_t address) {
+    platform.select(true);
+    uint8_t ahigh = address >> 3;
+    uint8_t alow = address << 5;
+    platform.spi_xfr(0x80 | ahigh);  // high bit for long
+    platform.spi_xfr(alow);
+    uint8_t res = platform.spi_xfr(0);
+    platform.select(false);
+    return res;
+}
+
+
+static void mrf_write_short(uint8_t address, uint8_t data) {
+    platform.select(true);
+    // 0 for top address, 1 bottom for write
+    platform.spi_xfr((address<<1 & 0b01111110) | 0x01);
+    platform.spi_xfr(data);
+    platform.select(false);
+}
+
+static void mrf_write_long(uint16_t address, uint8_t data) {
+    platform.select(true);
+    uint8_t ahigh = address >> 3;
+    uint8_t alow = address << 5;
+    platform.spi_xfr(0x80 | ahigh);  // high bit for long
+    platform.spi_xfr(alow | 0x10);  // last bit for write
+    platform.spi_xfr(data);
+    platform.select(false);
 }
 

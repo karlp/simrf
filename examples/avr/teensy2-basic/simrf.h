@@ -171,7 +171,7 @@ extern "C" {
         void (*delay_ms) (int value);
     };
 
-typedef struct _mrf_rx_info {
+typedef struct _simrf_rx_info {
     uint8_t frame_length;
     uint8_t frame_type:3;
     uint8_t security_enabled:1;
@@ -183,16 +183,16 @@ typedef struct _mrf_rx_info {
     uint8_t sequence_number;
     uint8_t lqi;
     uint8_t rssi;
-} mrf_rx_info_t;
+} simrf_rx_info_t;
 
 /**
  * Based on the TXSTAT register, but "better"
  */
-typedef struct _mrf_tx_info {
+typedef struct _simrf_tx_info {
     uint8_t tx_ok:1;
     uint8_t retries:2;
     uint8_t channel_busy:1;
-} mrf_tx_info_t;
+} simrf_tx_info_t;
 
 /**
  * Set up the platform specific driver methods.
@@ -207,6 +207,12 @@ void simrf_setup(struct simrf_platform *ptrs);
  * If a reset pin handler wasn't provided, this function has no effect.
  */
 void simrf_hard_reset(void);
+
+/**
+ * Politely ask the module to reset itself.
+ * You may like to use this instead of hard_reset and save yourself a pin...
+ */
+void simrf_soft_reset(void);
 
 /**
  * Resets all registers for proper operation.
@@ -262,10 +268,26 @@ void mrf_set_channel(void);
  */
 void simrf_send16(uint16_t dest16, uint8_t len, char *data);
 
-void mrf_interrupt_handler(void);
+/**
+ * Call this from within an interrupt handler connected to the MRFs output
+ * interrupt pin.  It handles reading in any data from the module, and letting it
+ * continue working.
+ * I haven't been able to reliably leave interrupts on, and throw away new packets
+ * until the old one was read out by client software.  Until I can work that out,
+ * I highly recommend disabling interrupts from module in your handle_rx callback.
+ * Otherwise, you run the risk of having a new packet trample all over the current packet.
+ * (TODO: why is this so hard to get right?!)
+ *
+ * Note, this is really only a problem in promiscuous mode...
+ */
+void simrf_interrupt_handler(void);
 
-void mrf_check_flags(void (*rx_handler) (mrf_rx_info_t *rxinfo, uint8_t *rxbuffer),
-                     void (*tx_handler) (mrf_tx_info_t *txinfo));
+/**
+ * Call this function periodically, it will invoke your nominated handlers
+ * @param rx_handler
+ * @param tx_handler
+ */void simrf_check_flags(void (*rx_handler) (simrf_rx_info_t *rxinfo, uint8_t *rxbuffer),
+                     void (*tx_handler) (simrf_tx_info_t *txinfo));
 
 
 #ifdef	__cplusplus

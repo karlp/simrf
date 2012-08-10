@@ -45,7 +45,7 @@ void platform_mrf_interrupt_enable(void) {
 }
 
 ISR(INT0_vect) {
-    mrf_interrupt_handler();
+    simrf_interrupt_handler();
 }
 
 static void plat_select(bool value) {
