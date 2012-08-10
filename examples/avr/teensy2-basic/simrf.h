@@ -197,20 +197,20 @@ typedef struct _mrf_tx_info {
  * CALL THIS FIRST!
  * @param ptrs
  */
-void simrf_init(struct simrf_platform *ptrs);
+void simrf_setup(struct simrf_platform *ptrs);
 
 /**
+ * Hard reset via the /RESET line.
  * Resets, and handles the proper delays between pin changes for you.
  * If a reset pin handler wasn't provided, this function has no effect.
  */
-void simrf_reset(void);
-void mrf_init(void);
+void simrf_hard_reset(void);
 
-uint8_t mrf_read_short(uint8_t address);
-uint8_t mrf_read_long(uint16_t address);
-
-void mrf_write_short(uint8_t address, uint8_t data);
-void mrf_write_long(uint16_t address, uint8_t data);
+/**
+ * Resets all registers for proper operation.
+ * Call this after any sort of hard reset, or power on.
+ */
+void simrf_init(void);
 
 uint16_t mrf_pan_read(void);
 void mrf_pan_write(uint16_t panid);

@@ -47,5 +47,5 @@ void platform_simrf_init(volatile uint8_t *reset_port, uint8_t reset_pin, volati
     plat.select = &plat_select;
     plat.reset = &plat_reset;
     // TODO more here!
-    simrf_init(&plat);
+    simrf_setup(&plat);
 }

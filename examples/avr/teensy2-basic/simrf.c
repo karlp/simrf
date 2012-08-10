@@ -22,14 +22,14 @@ static mrf_tx_info_t mrf_tx_info;
 static struct simrf_platform platform;
 
 
-void simrf_init(struct simrf_platform *ptrs) {
+void simrf_setup(struct simrf_platform *ptrs) {
     assert(ptrs->select);
     //assert(ptrs->reset);  // reset is optional.
     memcpy(&platform, ptrs, sizeof(struct simrf_platform));
 }
 
 
-void simrf_reset(void) {
+void simrf_hard_reset(void) {
     if (platform.reset) {
         platform.reset(true);
         _delay_ms(10);  // just my gut
@@ -71,6 +71,11 @@ uint8_t spi_tx(uint8_t cData) {
 #endif
 }
 
+uint8_t mrf_read_short(uint8_t address);
+uint8_t mrf_read_long(uint16_t address);
+
+void mrf_write_short(uint8_t address, uint8_t data);
+void mrf_write_long(uint16_t address, uint8_t data);
 
 uint8_t mrf_read_short(uint8_t address) {
     platform.select(true);
@@ -185,7 +190,7 @@ void mrf_set_channel(void) {
     mrf_write_long(MRF_RFCON0, 0x13);
 }
 
-void mrf_init(void) {
+void simrf_init(void) {
 /*
  // Seems a bit ridiculous when I use reset pin anyway
     mrf_write_short(MRF_SOFTRST, 0x7); // from manual

@@ -165,8 +165,8 @@ int main(void) {
 
     printf_P(PSTR("woke up...woo\n"));
     platform_simrf_init(&MRF_RESET_PORT, MRF_RESET_PIN, &MRF_CS_PORT, MRF_CS_PIN);
-    simrf_reset();
-    mrf_init();
+    simrf_hard_reset();
+    simrf_init();
 
     mrf_pan_write(0xcafe);
     mrf_address16_write(0x1111);
