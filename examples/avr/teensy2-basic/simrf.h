@@ -168,6 +168,7 @@ extern "C" {
         void (*select) (bool value);
         void (*reset) (bool value);
         uint8_t (*spi_xfr) (uint8_t c);
+        void (*delay_ms) (int value);
     };
 
 typedef struct _mrf_rx_info {
@@ -213,20 +214,53 @@ void simrf_hard_reset(void);
  */
 void simrf_init(void);
 
-uint16_t mrf_pan_read(void);
-void mrf_pan_write(uint16_t panid);
+/**
+ * Look up the PAN ID set for ourself
+ * @return panid
+ */
+uint16_t simrf_pan_read(void);
 
-void mrf_promiscuous(uint8_t enabled);
+/**
+ * Set the PAN ID to use for sending.
+ * @param panid
+ */
+void simrf_pan_write(uint16_t panid);
 
-void mrf_address16_write(uint16_t address16);
-uint16_t mrf_address16_read(void);
+/**
+ * Enables or disables promiscuous mode.
+ * True means "Receive all packet types with good CRC"
+ * False means "Discard packet when there is a MAC address mismatch,
+ * illegal frame type, dPAN/sPAN or MAC short address mismatch"
+ * @param enabled
+ */
+void simrf_promiscuous(uint8_t enabled);
 
-void mrf_set_interrupts(void);
+/**
+ * Set our own short (16bit) address to use for source address.
+ * @param address16
+ */
+void simrf_address16_write(uint16_t address16);
 
-// Set the channel to 12, 2.41Ghz, xbee channel 0xC
+/**
+ * Read our own short (16bit) address in use presently.
+ * @return 
+ */
+uint16_t simrf_address16_read(void);
+
+/**
+ * Set the channel to 12, 2.41Ghz, xbee channel 0xC
+ * FIXME - this is hardcoded right now!!
+ */
 void mrf_set_channel(void);
 
-void mrf_send16(uint16_t dest16, uint8_t len, char * data);
+/**
+ * Simple send 16, with acks, not much of anything.. assumes src16 and local pan only.
+ * 
+ * @param dest16
+ * @param len
+ * @param data
+ */
+void simrf_send16(uint16_t dest16, uint8_t len, char *data);
 
 void mrf_interrupt_handler(void);
 

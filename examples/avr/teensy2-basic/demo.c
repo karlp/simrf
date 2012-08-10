@@ -168,9 +168,9 @@ int main(void) {
     simrf_hard_reset();
     simrf_init();
 
-    mrf_pan_write(0xcafe);
-    mrf_address16_write(0x1111);
-    mrf_promiscuous(1);
+    simrf_pan_write(0xcafe);
+    simrf_address16_write(0x1111);
+    simrf_promiscuous(1);
     sei();
     uint32_t roughness = 0;
     while (1) {
@@ -179,7 +179,7 @@ int main(void) {
         // about a second or so...
         if (roughness > 0x50000) {
             printf_P(PSTR("txxxing...\n"));
-            mrf_send16(0x1, 4, "abcd");
+            simrf_send16(0x1, 4, "abcd");
             roughness = 0;
         }
     }

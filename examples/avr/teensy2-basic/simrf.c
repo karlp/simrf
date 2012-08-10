@@ -5,8 +5,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
-#include <avr/io.h>
-#include <util/delay.h>
 
 #include "simrf.h"
 
@@ -25,6 +23,7 @@ static struct simrf_platform platform;
 void simrf_setup(struct simrf_platform *ptrs) {
     assert(ptrs->select);
     assert(ptrs->spi_xfr);
+    assert(ptrs->delay_ms);
     //assert(ptrs->reset);  // reset is optional.
     memcpy(&platform, ptrs, sizeof(struct simrf_platform));
 }
@@ -33,18 +32,12 @@ void simrf_setup(struct simrf_platform *ptrs) {
 void simrf_hard_reset(void) {
     if (platform.reset) {
         platform.reset(true);
-        _delay_ms(10);  // just my gut
+        platform.delay_ms(10);  // just my gut
         platform.reset(false);
-        _delay_ms(20);  // from manual
+        platform.delay_ms(20);  // from manual
     }
 }
 
-
-uint8_t mrf_read_short(uint8_t address);
-uint8_t mrf_read_long(uint16_t address);
-
-void mrf_write_short(uint8_t address, uint8_t data);
-void mrf_write_long(uint16_t address, uint8_t data);
 
 uint8_t mrf_read_short(uint8_t address) {
     platform.select(true);
@@ -85,27 +78,27 @@ void mrf_write_long(uint16_t address, uint8_t data) {
     platform.select(false);
 }
 
-uint16_t mrf_pan_read(void) {
+uint16_t simrf_pan_read(void) {
     uint8_t panh = mrf_read_short(MRF_PANIDH);
     return panh << 8 | mrf_read_short(MRF_PANIDL);
 }
 
-void mrf_pan_write(uint16_t panid) {
+void simrf_pan_write(uint16_t panid) {
     mrf_write_short(MRF_PANIDH, panid >> 8);
     mrf_write_short(MRF_PANIDL, panid & 0xff);
 }
 
-void mrf_address16_write(uint16_t address16) {
+void simrf_address16_write(uint16_t address16) {
     mrf_write_short(MRF_SADRH, address16 >> 8);
     mrf_write_short(MRF_SADRL, address16 & 0xff);
 }
 
-uint16_t mrf_address16_read(void) {
+uint16_t simrf_address16_read(void) {
     uint8_t a16h = mrf_read_short(MRF_SADRH);
     return a16h << 8 | mrf_read_short(MRF_SADRL);
 }
 
-void mrf_promiscuous(uint8_t enabled) {
+void simrf_promiscuous(uint8_t enabled) {
     // TODO - a tad ugly, this should really do a read modify write
     if (enabled) {
         mrf_write_short(MRF_RXMCR, 0x01);
@@ -114,11 +107,7 @@ void mrf_promiscuous(uint8_t enabled) {
     }
 }
 
-/**
- * Simple send 16, with acks, not much of anything.. assumes src16 and local pan only.
- * @param data
- */
-void mrf_send16(uint16_t dest16, uint8_t len, char * data) {
+void simrf_send16(uint16_t dest16, uint8_t len, char * data) {
 
     int i = 0;
     mrf_write_long(i++, 9);  // header length
@@ -130,14 +119,14 @@ void mrf_send16(uint16_t dest16, uint8_t len, char * data) {
     mrf_write_long(i++, 0b10001000); // second byte of frame control
     mrf_write_long(i++, 1);  // sequence number 1
 
-    uint16_t panid = mrf_pan_read();
+    uint16_t panid = simrf_pan_read(); // TODO Inefficient for perf, good for memory?
 
     mrf_write_long(i++, panid & 0xff);  // dest panid
     mrf_write_long(i++, panid >> 8);
     mrf_write_long(i++, dest16 & 0xff);  // dest16 low
     mrf_write_long(i++, dest16 >> 8); // dest16 high
 
-    uint16_t src16 = mrf_address16_read();
+    uint16_t src16 = simrf_address16_read();  // TODO likewise...
     mrf_write_long(i++, src16 & 0xff); // src16 low
     mrf_write_long(i++, src16 >> 8); // src16 high
 
@@ -155,7 +144,6 @@ void mrf_set_interrupts(void) {
     mrf_write_short(MRF_INTCON, 0b11110110);
 }
 
-// Set the channel to 12, 2.41Ghz, xbee channel 0xC
 void mrf_set_channel(void) {
     mrf_write_long(MRF_RFCON0, 0x13);
 }
@@ -189,7 +177,8 @@ void simrf_init(void) {
     //Set transmitter power - See “REGISTER 2-62: RF CONTROL 3 REGISTER (ADDRESS: 0x203)”.
     mrf_write_short(MRF_RFCTL, 0x04); //  – Reset RF state machine.
     mrf_write_short(MRF_RFCTL, 0x00); // part 2
-    _delay_us(500); // delay at least 192usec
+    // FIXME - _delay_us(500); // delay at least 192usec
+    platform.delay_ms(1);
 }
 
 /**

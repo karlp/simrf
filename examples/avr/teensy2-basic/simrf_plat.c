@@ -43,7 +43,7 @@ static void plat_reset(bool value) {
  * (TODO, you can handle that yourself, or even, have a compile time flag that
  * determines whether to use internal, or provided spi_tx/rx routines)
  */
-uint8_t plat_spi_tx(uint8_t cData) {
+static uint8_t plat_spi_tx(uint8_t cData) {
 
 #if defined(SPDR)
     // AVR platforms with "regular" SPI hardware
@@ -67,7 +67,9 @@ uint8_t plat_spi_tx(uint8_t cData) {
 #endif
 }
 
-
+static inline void plat_delay_ms(int value) {
+    _delay_ms(value);
+}
 
 void platform_simrf_init(volatile uint8_t *reset_port, uint8_t reset_pin, volatile uint8_t *cs_port, uint8_t cs_pin) {
     mrf_reset_port = reset_port;
@@ -80,6 +82,7 @@ void platform_simrf_init(volatile uint8_t *reset_port, uint8_t reset_pin, volati
     plat.select = &plat_select;
     plat.reset = &plat_reset;
     plat.spi_xfr = &plat_spi_tx;
+    plat.delay_ms = &plat_delay_ms;
     // TODO more here!
     simrf_setup(&plat);
 }
