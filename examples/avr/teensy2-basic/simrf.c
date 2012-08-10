@@ -24,6 +24,7 @@ static struct simrf_platform platform;
 
 void simrf_setup(struct simrf_platform *ptrs) {
     assert(ptrs->select);
+    assert(ptrs->spi_xfr);
     //assert(ptrs->reset);  // reset is optional.
     memcpy(&platform, ptrs, sizeof(struct simrf_platform));
 }
@@ -39,38 +40,6 @@ void simrf_hard_reset(void) {
 }
 
 
-/**
- * Internal spi handling, works on both avr tiny, with USI,
- * and also regular hardware SPI.
- *
- * For regular hardware spi, requires the spi hardware to already be setup!
- * (TODO, you can handle that yourself, or even, have a compile time flag that
- * determines whether to use internal, or provided spi_tx/rx routines)
- */
-uint8_t spi_tx(uint8_t cData) {
-
-#if defined(SPDR)
-    // AVR platforms with "regular" SPI hardware
-
-    /* Start transmission */
-    SPDR = cData;
-    /* Wait for transmission complete */
-    loop_until_bit_is_set(SPSR, SPIF);
-    return SPDR;
-#elif defined (USIDR)
-    // AVR platforms with USI interfaces, capable of SPI
-        /* Start transmission */
-    USIDR = cData;
-    USISR = (1 << USIOIF);
-    do {
-        USICR = (1 << USIWM0) | (1 << USICS1) | (1 << USICLK) | (1 << USITC);
-    } while ((USISR & (1 << USIOIF)) == 0);
-    return USIDR;
-//#else - stupid netbeans doesn't find the right defines :(
-//#error "You don't seem to have any sort of spi hardware!"
-#endif
-}
-
 uint8_t mrf_read_short(uint8_t address);
 uint8_t mrf_read_long(uint16_t address);
 
@@ -80,8 +49,8 @@ void mrf_write_long(uint16_t address, uint8_t data);
 uint8_t mrf_read_short(uint8_t address) {
     platform.select(true);
     // 0 top for short addressing, 0 bottom for read
-    spi_tx(address<<1 & 0b01111110);
-    uint8_t res = spi_tx(0x0);
+    platform.spi_xfr(address<<1 & 0b01111110);
+    uint8_t res = platform.spi_xfr(0x0);
     platform.select(false);
     return res;
 }
@@ -90,9 +59,9 @@ uint8_t mrf_read_long(uint16_t address) {
     platform.select(true);
     uint8_t ahigh = address >> 3;
     uint8_t alow = address << 5;
-    spi_tx(0x80 | ahigh);  // high bit for long
-    spi_tx(alow);
-    uint8_t res = spi_tx(0);
+    platform.spi_xfr(0x80 | ahigh);  // high bit for long
+    platform.spi_xfr(alow);
+    uint8_t res = platform.spi_xfr(0);
     platform.select(false);
     return res;
 }
@@ -101,8 +70,8 @@ uint8_t mrf_read_long(uint16_t address) {
 void mrf_write_short(uint8_t address, uint8_t data) {
     platform.select(true);
     // 0 for top address, 1 bottom for write
-    spi_tx((address<<1 & 0b01111110) | 0x01);
-    spi_tx(data);
+    platform.spi_xfr((address<<1 & 0b01111110) | 0x01);
+    platform.spi_xfr(data);
     platform.select(false);
 }
 
@@ -110,9 +79,9 @@ void mrf_write_long(uint16_t address, uint8_t data) {
     platform.select(true);
     uint8_t ahigh = address >> 3;
     uint8_t alow = address << 5;
-    spi_tx(0x80 | ahigh);  // high bit for long
-    spi_tx(alow | 0x10);  // last bit for write
-    spi_tx(data);
+    platform.spi_xfr(0x80 | ahigh);  // high bit for long
+    platform.spi_xfr(alow | 0x10);  // last bit for write
+    platform.spi_xfr(data);
     platform.select(false);
 }
 

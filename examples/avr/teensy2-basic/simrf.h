@@ -167,6 +167,7 @@ extern "C" {
     struct simrf_platform {
         void (*select) (bool value);
         void (*reset) (bool value);
+        uint8_t (*spi_xfr) (uint8_t c);
     };
 
 typedef struct _mrf_rx_info {

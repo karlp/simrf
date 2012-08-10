@@ -35,6 +35,39 @@ static void plat_reset(bool value) {
     }
 }
 
+/**
+ * Internal spi handling, works on both avr tiny, with USI,
+ * and also regular hardware SPI.
+ *
+ * For regular hardware spi, requires the spi hardware to already be setup!
+ * (TODO, you can handle that yourself, or even, have a compile time flag that
+ * determines whether to use internal, or provided spi_tx/rx routines)
+ */
+uint8_t plat_spi_tx(uint8_t cData) {
+
+#if defined(SPDR)
+    // AVR platforms with "regular" SPI hardware
+
+    /* Start transmission */
+    SPDR = cData;
+    /* Wait for transmission complete */
+    loop_until_bit_is_set(SPSR, SPIF);
+    return SPDR;
+#elif defined (USIDR)
+    // AVR platforms with USI interfaces, capable of SPI
+        /* Start transmission */
+    USIDR = cData;
+    USISR = (1 << USIOIF);
+    do {
+        USICR = (1 << USIWM0) | (1 << USICS1) | (1 << USICLK) | (1 << USITC);
+    } while ((USISR & (1 << USIOIF)) == 0);
+    return USIDR;
+//#else - stupid netbeans doesn't find the right defines :(
+//#error "You don't seem to have any sort of spi hardware!"
+#endif
+}
+
+
 
 void platform_simrf_init(volatile uint8_t *reset_port, uint8_t reset_pin, volatile uint8_t *cs_port, uint8_t cs_pin) {
     mrf_reset_port = reset_port;
@@ -46,6 +79,7 @@ void platform_simrf_init(volatile uint8_t *reset_port, uint8_t reset_pin, volati
     memset(&plat, 0, sizeof(plat));
     plat.select = &plat_select;
     plat.reset = &plat_reset;
+    plat.spi_xfr = &plat_spi_tx;
     // TODO more here!
     simrf_setup(&plat);
 }
