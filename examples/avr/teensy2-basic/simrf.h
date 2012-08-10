@@ -166,6 +166,7 @@ extern "C" {
 
     struct simrf_platform {
         void (*select) (bool value);
+        void (*reset) (bool value);
     };
 
 typedef struct _mrf_rx_info {
@@ -191,9 +192,19 @@ typedef struct _mrf_tx_info {
     uint8_t channel_busy:1;
 } mrf_tx_info_t;
 
-void mrf_reset(volatile uint8_t *port, uint8_t reset_pin);
-void mrf_init(void);
+/**
+ * Set up the platform specific driver methods.
+ * CALL THIS FIRST!
+ * @param ptrs
+ */
 void simrf_init(struct simrf_platform *ptrs);
+
+/**
+ * Resets, and handles the proper delays between pin changes for you.
+ * If a reset pin handler wasn't provided, this function has no effect.
+ */
+void simrf_reset(void);
+void mrf_init(void);
 
 uint8_t mrf_read_short(uint8_t address);
 uint8_t mrf_read_long(uint16_t address);

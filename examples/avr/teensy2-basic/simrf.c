@@ -24,18 +24,18 @@ static struct simrf_platform platform;
 
 void simrf_init(struct simrf_platform *ptrs) {
     assert(ptrs->select);
+    //assert(ptrs->reset);  // reset is optional.
     memcpy(&platform, ptrs, sizeof(struct simrf_platform));
 }
 
 
-/**
- * use with mrf_reset(&PORTB, PINB5);
- */
-void mrf_reset(volatile uint8_t *port, uint8_t pin) {
-    *port &= ~(1 << pin);
-    _delay_ms(10);  // just my gut
-    *port |= (1 << pin);  // active low biatch!
-    _delay_ms(20);  // from manual
+void simrf_reset(void) {
+    if (platform.reset) {
+        platform.reset(true);
+        _delay_ms(10);  // just my gut
+        platform.reset(false);
+        _delay_ms(20);  // from manual
+    }
 }
 
 
