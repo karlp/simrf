@@ -161,8 +161,12 @@ extern "C" {
 #define MAC_FRAME_VERSION_2003 0
 #define MAC_FRAME_VERSION_2006 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
+    struct simrf_platform {
+        void (*select) (bool value);
+    };
 
 typedef struct _mrf_rx_info {
     uint8_t frame_length;
@@ -188,7 +192,8 @@ typedef struct _mrf_tx_info {
 } mrf_tx_info_t;
 
 void mrf_reset(volatile uint8_t *port, uint8_t reset_pin);
-void mrf_init(volatile uint8_t *port, uint8_t cs_pin);
+void mrf_init(void);
+void simrf_init(struct simrf_platform *ptrs);
 
 uint8_t mrf_read_short(uint8_t address);
 uint8_t mrf_read_long(uint16_t address);

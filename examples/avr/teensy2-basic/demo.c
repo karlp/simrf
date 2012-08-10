@@ -15,6 +15,7 @@
 // usb hid...
 #include "usb_debug_only.h"
 #include "simrf.h"
+#include "simrf_plat.h"
 
 #define MRF_RESET_DDR DDRB
 #define MRF_RESET_PORT PORTB
@@ -163,8 +164,9 @@ int main(void) {
     init();
 
     printf_P(PSTR("woke up...woo\n"));
+    platform_simrf_init(&MRF_CS_PORT, MRF_CS_PIN);
     mrf_reset(&MRF_RESET_PORT, MRF_RESET_PIN);
-    mrf_init(&MRF_CS_PORT, MRF_CS_PIN);
+    mrf_init();
 
     mrf_pan_write(0xcafe);
     mrf_address16_write(0x1111);
