@@ -109,10 +109,6 @@ static uint8_t plat_spi_tx(uint8_t cData) {
 #endif
 }
 
-static inline void plat_delay_ms(int value) {
-    _delay_ms(value);
-}
-
 void platform_simrf_init(void) {
     MRF_RESET_CONFIG;
     MRF_CS_CONFIG;
@@ -128,7 +124,7 @@ void platform_simrf_init(void) {
     plat.select = &plat_select;
     plat.reset = &plat_reset;
     plat.spi_xfr = &plat_spi_tx;
-    plat.delay_ms = &plat_delay_ms;
+    plat.delay_ms = &_delay_ms;
     // TODO more here!
     simrf_setup(&plat);
 }
