@@ -203,21 +203,14 @@ int main(void) {
 
     printf("woke up...woo\n");
     int i = 0;
-    while(1) {
-        gpio_set(GPIOC, GPIO1);
-        gpio_set(GPIOC, GPIO9);
-        delay_ms(100);
-        gpio_clear(GPIOC, GPIO1);
-        gpio_clear(GPIOC, GPIO9);
-        delay_ms(200);
-        printf("bleh %d\n", i++);
-    }
-/*
     simrf_hard_reset();
+    printf("reset done..\n");
     //simrf_soft_reset();
     simrf_init();
 
     simrf_pan_write(0xcafe);
+    uint16_t pan_sanity_check = simrf_pan_read();
+    printf("pan read back in as %#x\n", pan_sanity_check);
     simrf_address16_write(0x1111);
     simrf_promiscuous(1);
     uint32_t roughness = 0;
@@ -231,6 +224,5 @@ int main(void) {
             roughness = 0;
         }
     }
-*/
 }
 
