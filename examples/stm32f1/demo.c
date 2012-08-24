@@ -135,8 +135,19 @@ int main(void) {
     init();
 
     printf("woke up...woo\n");
-    //simrf_hard_reset();
-    simrf_soft_reset();
+    int i = 0;
+    while(1) {
+        gpio_set(GPIOC, GPIO1);
+        gpio_set(GPIOC, GPIO9);
+        delay_ms(100);
+        gpio_clear(GPIOC, GPIO1);
+        gpio_clear(GPIOC, GPIO9);
+        delay_ms(200);
+        printf("bleh %d\n", i++);
+    }
+/*
+    simrf_hard_reset();
+    //simrf_soft_reset();
     simrf_init();
 
     simrf_pan_write(0xcafe);
@@ -153,5 +164,6 @@ int main(void) {
             roughness = 0;
         }
     }
+*/
 }
 
