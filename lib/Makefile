@@ -17,7 +17,7 @@ CFLAGS_AVR= -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 
 ifeq ($(CPU),stm32)
 CFLAGS+=-fno-common -mcpu=cortex-m3 -mthumb
-PREFIX=arm-none-eabi
+PREFIX=arm-none-eabi-
 endif
 ifeq ($(CPU),atmega32u4)
 CFLAGS+=$(CFLAGS_AVR) -mmcu=$(CPU)
@@ -36,6 +36,9 @@ endif
 
 
 all: $(LIBNAME).a
+
+help:
+	@echo "make CPU=[atmega32u4|stm32] V=[0|1]"
 
 $(LIBNAME).a: $(OBJECTS)
 	@printf "  AR      $(subst $(shell pwd)/,,$(@))\n"
