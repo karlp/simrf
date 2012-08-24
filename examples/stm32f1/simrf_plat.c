@@ -23,6 +23,8 @@
 #define MRF_SELECT_PIN GPIO4
 #define MRF_RESET_PORT GPIOC
 #define MRF_RESET_PIN GPIO1
+#define MRF_INTERRUPT_PORT GPIOC
+#define MRF_INTERRUPT_PIN GPIO0
 
 
 void platform_mrf_interrupt_disable(void) {
@@ -87,7 +89,7 @@ void mrf_gpio_setup(void) {
     // MRF reset pin
     gpio_set_mode(MRF_RESET_PORT, GPIO_MODE_OUTPUT_10_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, MRF_RESET_PIN);
     // MRF interrupt pin
-    gpio_set_mode(GPIOC, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, GPIO0);
+    gpio_set_mode(MRF_INTERRUPT_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, MRF_INTERRUPT_PIN);
 }
 
 
