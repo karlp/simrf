@@ -1,0 +1,3 @@
+* change platform_delay to use int, not floating point, we only need it in a few places, and never
+floating point
+* make a st stdperiph example for stm32 as well.
