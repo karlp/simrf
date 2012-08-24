@@ -5,6 +5,7 @@
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/nvic.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/systick.h>
 #include <libopencm3/stm32/f1/gpio.h>
 #include <libopencm3/stm32/f1/rcc.h>
 
@@ -13,6 +14,27 @@
 #include "simrf.h"
 #include "simrf_plat.h"
 
+static volatile int64_t ksystick;
+
+int64_t millis(void)
+{
+    return ksystick;
+}
+
+/**
+ * Busy loop for X ms USES INTERRUPTS
+ * @param ms
+ */
+void delay_ms(double ms) {
+    int64_t now = millis();
+    while (millis() - ms < now) {
+        ;
+    }
+}
+
+void sys_tick_handler(void) {
+    ksystick++;
+}
 
 int _write(int file, char *ptr, int len) {
     int i;
@@ -30,11 +52,57 @@ int _write(int file, char *ptr, int len) {
     return -1;
 }
 
-void init(void) {
+void clock_setup(void) {
+    /* Enable clocks on all the peripherals we are going to use. */
+    rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_SPI1EN);
+    rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_USART2EN);
+    // GPIOS... spi1 and usart2 are on port A
+    rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN);
+    // reset and interrupts on port C
+    rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPCEN);
+    rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_AFIOEN);
+    
+}
 
-    platform_simrf_init();
+void systick_setup(void) {
+    systick_set_clocksource(STK_CTRL_CLKSOURCE_AHB_DIV8);  // 24meg / 8 = 3Mhz
+    // one interrupt per ms..
+    systick_set_reload(3000);
+    systick_interrupt_enable();
+    systick_counter_enable();
+}
+
+void usart_setup(void) {
+    // NEED GPIO FOR USARTS...
+    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_10_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO2);
+
+    /* Setup UART parameters. */
+    usart_set_baudrate(USART2, 19200);
+    usart_set_databits(USART2, 8);
+    usart_set_stopbits(USART2, USART_STOPBITS_1);
+    usart_set_parity(USART2, USART_PARITY_NONE);
+    usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
+    usart_set_mode(USART2, USART_MODE_TX);
+
+    /* Finally enable the USART. */
+    usart_enable(USART2);
+}
+
+
+
+void init(void) {
+    rcc_clock_setup_in_hse_8mhz_out_24mhz();
+    //rcc_clock_setup_in_hsi_out_24mhz();
+    clock_setup();
+    systick_setup();
+    usart_setup();
+    // user led on discovery board.
+    gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_10_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO9);
+
+
+    //platform_simrf_init();
     // interrupt pin from mrf
-    platform_mrf_interrupt_enable();
+    //platform_mrf_interrupt_enable();
 }
 
 void handle_rx(simrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
