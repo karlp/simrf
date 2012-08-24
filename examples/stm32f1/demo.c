@@ -219,7 +219,7 @@ int main(void) {
         simrf_check_flags(&handle_rx, &handle_tx);
         // about a second or so...
         if (roughness > 0x50000) {
-            printf("txxxing...\n");
+            printf("txxxing... %d\n", i++);
             simrf_send16(0x1, 4, "abcd");
             roughness = 0;
         }
