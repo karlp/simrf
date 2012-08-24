@@ -99,10 +99,9 @@ void init(void) {
     // user led on discovery board.
     gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_10_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO9);
 
-
-    //platform_simrf_init();
+    platform_simrf_init();
     // interrupt pin from mrf
-    //platform_mrf_interrupt_enable();
+    platform_mrf_interrupt_enable();
 }
 
 void handle_rx(simrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
