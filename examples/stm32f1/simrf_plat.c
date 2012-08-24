@@ -11,6 +11,8 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/f1/rcc.h>
 #include <libopencm3/stm32/f1/gpio.h>
+#include <libopencm3/stm32/nvic.h>
+#include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/systick.h>
 
@@ -25,21 +27,27 @@
 #define MRF_RESET_PIN GPIO1
 #define MRF_INTERRUPT_PORT GPIOC
 #define MRF_INTERRUPT_PIN GPIO0
-
+#define MRF_INTERRUPT_NVIC NVIC_EXTI0_IRQ
+#define MRF_INTERRUPT_EXTI EXTI0
 
 void platform_mrf_interrupt_disable(void) {
-    // TODO
+    exti_disable_request(MRF_INTERRUPT_EXTI);
+    nvic_disable_irq(MRF_INTERRUPT_NVIC);
 }
 
 void platform_mrf_interrupt_enable(void) {
-    // TODO
+    // Enable EXTI0 interrupt.
+    nvic_enable_irq(MRF_INTERRUPT_NVIC);
+    /* Configure the EXTI subsystem. */
+    exti_select_source(MRF_INTERRUPT_EXTI, MRF_INTERRUPT_PORT);
+    exti_set_trigger(MRF_INTERRUPT_EXTI, EXTI_TRIGGER_RISING);
+    exti_enable_request(MRF_INTERRUPT_EXTI);
 }
 
-#if FINISHED == 1
-ISR(INT0_vect) {
+void exti0_isr(void) {
+    exti_reset_request(EXTI0);
     simrf_interrupt_handler();
 }
-#endif
 
 static void plat_select(bool value) {
     // active low
