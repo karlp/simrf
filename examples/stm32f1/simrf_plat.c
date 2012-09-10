@@ -67,7 +67,7 @@ static void plat_reset(bool value) {
     }
 }
 
-extern void delay_ms(double ms);
+extern void delay_ms(int ms);
 
 static uint8_t plat_spi_tx(uint8_t cData) {
     return spi_xfer(MRF_SPI, cData);

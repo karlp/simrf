@@ -25,7 +25,7 @@ int64_t millis(void)
  * Busy loop for X ms USES INTERRUPTS
  * @param ms
  */
-void delay_ms(double ms) {
+void delay_ms(int ms) {
     int64_t now = millis();
     while (millis() - ms < now) {
         ;

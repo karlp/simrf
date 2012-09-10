@@ -168,7 +168,7 @@ extern "C" {
         void (*select) (bool value);
         void (*reset) (bool value);
         uint8_t (*spi_xfr) (uint8_t c);
-        void (*delay_ms) (double value);
+        void (*delay_ms) (int value);
     };
 
 typedef struct _simrf_rx_info {
