@@ -10,6 +10,7 @@
 
 // aMaxPHYPacketSize = 127, from the 802.15.4-2006 standard.
 static uint8_t mrf_rx_buf[127];
+static uint8_t simrf_sequence = 0;
 
 volatile uint8_t flag_got_rx;
 volatile uint8_t flag_got_tx;
@@ -87,7 +88,7 @@ void simrf_send16(uint16_t dest16, uint8_t len, char * data) {
     mrf_write_long(i++, 0b01100001); // first byte of Frame Control
 // 16 bit source, 802.15.4 (2003), 16 bit dest,
     mrf_write_long(i++, 0b10001000); // second byte of frame control
-    mrf_write_long(i++, 1);  // sequence number 1
+    mrf_write_long(i++, simrf_sequence++);
 
     uint16_t panid = simrf_pan_read(); // TODO Inefficient for perf, good for memory?
 
