@@ -40,7 +40,7 @@ void platform_mrf_interrupt_enable(void) {
     nvic_enable_irq(MRF_INTERRUPT_NVIC);
     /* Configure the EXTI subsystem. */
     exti_select_source(MRF_INTERRUPT_EXTI, MRF_INTERRUPT_PORT);
-    exti_set_trigger(MRF_INTERRUPT_EXTI, EXTI_TRIGGER_RISING);
+    exti_set_trigger(MRF_INTERRUPT_EXTI, EXTI_TRIGGER_FALLING);
     exti_enable_request(MRF_INTERRUPT_EXTI);
 }
 
