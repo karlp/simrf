@@ -105,7 +105,6 @@ void init(void) {
 }
 
 void handle_rx(simrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
-    platform_mrf_interrupt_disable();
     printf("Received a packet: %u bytes long\n", rxinfo->frame_length);
     printf("headers:");
     switch (rxinfo->frame_type) {
@@ -187,7 +186,6 @@ void handle_rx(simrf_rx_info_t *rxinfo, uint8_t *rx_buffer) {
         printf("%02x,", rx_buffer[i]);
     }
     printf("\nLQI/RSSI=%d/%d\n", rxinfo->lqi, rxinfo->rssi);
-    platform_mrf_interrupt_enable();
 }
 
 void handle_tx(simrf_tx_info_t *txinfo) {
