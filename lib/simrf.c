@@ -147,6 +147,13 @@ void simrf_init(void) {
 void simrf_interrupt_handler(void) {
     uint8_t last_interrupt = mrf_read_short(MRF_INTSTAT);
     if (last_interrupt & MRF_I_RXIF) {
+        if (flag_got_rx > 0) {
+            // discard new packets until they've processed the last one :|
+            // This is called for every interrupt, but without resetting the
+            // rx fifo pointers, you won't actually receive any new packets!
+            mrf_write_short(MRF_RXFLUSH, 0x01);
+            return;
+        }
         flag_got_rx++;
         // read out the packet data...
         mrf_write_short(MRF_BBREG1, 0x04);  // RXDECINV - disable receiver
