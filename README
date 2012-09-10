@@ -1,7 +1,17 @@
 Multiplatform library for using Microchip's MRF24J40MA modules.
 
-Early stages... I've had this working in various pieces before,
-but it's time it was all tidied up and made a bit more useful to others.
+This is designed to be _simple_ not high performance.  TX is easy,
+RX expects the device to be always on, and only buffers a single packet at a time.
+
+This is mostly used as a basis for my own work using these devices in my own projects.
+
+Current status:
+ * atmega32u4 (Teensy 2.0) Working fine
+ * stm32f100 (STM32VL Discovery Board) Working fine (libopencm3 based)
+
+Future:
+ * stm32l1 (libopencm3 based)
+ * stm32f100 (std periph lib based)
 
 Author: Karl Palsson <karlp@tweak.net.au>
 Web: http://false.ekta.is
