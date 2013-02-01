@@ -198,7 +198,9 @@ void simrf_check_flags(void (*rx_handler) (simrf_rx_info_t *rxinfo, uint8_t *rxb
     // TODO - we could check whether the flags are > 1 here, indicating data was lost?
     if (flag_got_rx) {
         flag_got_rx = 0;
-        rx_handler(&mrf_rx_info, mrf_rx_buf);
+        if (rx_handler) {
+            rx_handler(&mrf_rx_info, mrf_rx_buf);
+        }
     }
     if (flag_got_tx) {
         flag_got_tx = 0;
