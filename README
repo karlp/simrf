@@ -13,6 +13,10 @@ Future:
  * stm32l1 (libopencm3 based)
  * stm32f100 (std periph lib based)
 
+NOTE: If you are using this with Xbee devices in one of the non compliant
+"MAC Modes", edit lib/config.h to suit your needs.  See also page 48 of
+the Xbee manual, the "MM" api command.
+
 Author: Karl Palsson <karlp@tweak.net.au>
 Web: http://false.ekta.is
 

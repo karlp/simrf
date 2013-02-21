@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "config.h"
 #include "simrf.h"
 
 // aMaxPHYPacketSize = 127, from the 802.15.4-2006 standard.
@@ -82,7 +83,12 @@ void simrf_send16(uint16_t dest16, uint8_t len, char * data) {
 
     int i = 0;
     mrf_write_long(i++, 9);  // header length
-    mrf_write_long(i++, 9+2+len); //+2 is because module seems to ignore 2 bytes after the header?!
+#if PAD_DIGI_HEADER
+    mrf_write_long(i++, 9+2+len);
+#else
+    mrf_write_long(i++, 9+len);
+#endif
+
 
 // 0 | pan compression | ack | no security | no data pending | data frame[3 bits]
     mrf_write_long(i++, 0b01100001); // first byte of Frame Control
@@ -101,8 +107,9 @@ void simrf_send16(uint16_t dest16, uint8_t len, char * data) {
     mrf_write_long(i++, src16 & 0xff); // src16 low
     mrf_write_long(i++, src16 >> 8); // src16 high
 
-    // MASSIVE FIXME - see the blog for commentary on this!!!
-    i+=2;  // All testing seems to indicate that the next two bytes are ignored.
+#if PAD_DIGI_HEADER
+    i+=2;
+#endif
     for (int q = 0; q < len; q++) {
         mrf_write_long(i++, data[q]);
     }
