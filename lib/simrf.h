@@ -28,8 +28,8 @@ extern "C" {
 #define MRF_EADR6 0x0B
 #define MRF_EADR7 0x0C
 #define MRF_RXFLUSH 0x0D
-//#define MRF_Reserved 0x0E
-//#define MRF_Reserved 0x0F
+	//#define MRF_Reserved 0x0E
+	//#define MRF_Reserved 0x0F
 #define MRF_ORDER 0x10
 #define MRF_TXMCR 0x11
 #define MRF_ACKTMOUT 0x12
@@ -39,10 +39,10 @@ extern "C" {
 #define MRF_PACON0 0x16
 #define MRF_PACON1 0x17
 #define MRF_PACON2 0x18
-//#define MRF_Reserved 0x19
+	//#define MRF_Reserved 0x19
 #define MRF_TXBCON0 0x1A
 
-// TXNCON: TRANSMIT NORMAL FIFO CONTROL REGISTER (ADDRESS: 0x1B)
+	// TXNCON: TRANSMIT NORMAL FIFO CONTROL REGISTER (ADDRESS: 0x1B)
 #define MRF_TXNCON      0x1B
 #define MRF_TXNTRIG     0
 #define MRF_TXNSECEN    1
@@ -60,7 +60,7 @@ extern "C" {
 #define MRF_WAKECON_IMMWAKE	(1<<7)
 #define MRF_WAKECON_REGWAKE	(1<<6)
 #define MRF_FRMOFFSET 0x23
-// TXSTAT: TX MAC STATUS REGISTER (ADDRESS: 0x24)
+	// TXSTAT: TX MAC STATUS REGISTER (ADDRESS: 0x24)
 #define MRF_TXSTAT 0x24
 #define TXNRETRY1       7
 #define TXNRETRY0       6
@@ -80,11 +80,11 @@ extern "C" {
 #define MRF_SOFTRST_RSTPWR	(1<<2)
 #define MRF_SOFTRST_RSTBB	(1<<1)
 #define MRF_SOFTRST_RSTMAC	(1<<0)
-//#define MRF_Reserved 0x2B
+	//#define MRF_Reserved 0x2B
 #define MRF_SECCON0 0x2C
 #define MRF_SECCON1 0x2D
 #define MRF_TXSTBL 0x2E
-//#define MRF_Reserved 0x2F
+	//#define MRF_Reserved 0x2F
 #define MRF_RXSR 0x30
 #define MRF_INTSTAT 0x31
 #define MRF_INTCON 0x32
@@ -100,7 +100,7 @@ extern "C" {
 #define MRF_BBREG2 0x3A
 #define MRF_BBREG3 0x3B
 #define MRF_BBREG4 0x3C
-//#define MRF_Reserved 0x3D
+	//#define MRF_Reserved 0x3D
 #define MRF_BBREG6 0x3E
 #define MRF_CCAEDTH 0x3F
 
@@ -153,8 +153,8 @@ extern "C" {
 #define MRF_I_RXIF  0b00001000
 #define MRF_I_TXNIF 0b00000001
 
-// These are defines based on the 802.15.4 standard, hence the MAC prefix,
-// rather than MRF_
+	// These are defines based on the 802.15.4 standard, hence the MAC prefix,
+	// rather than MRF_
 #define MAC_FRAME_TYPE_BEACON 0
 #define MAC_FRAME_TYPE_DATA 1
 #define MAC_FRAME_TYPE_ACK 2
@@ -171,140 +171,140 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-    struct simrf_platform {
-        void (*select) (bool value);
-        void (*reset) (bool value);
-        uint8_t (*spi_xfr) (uint8_t c);
-        void (*delay_ms) (int value);
-    };
+	struct simrf_platform {
+		void (*select) (bool value);
+		void (*reset) (bool value);
+		uint8_t(*spi_xfr) (uint8_t c);
+		void (*delay_ms) (int value);
+	};
 
-typedef struct _simrf_rx_info {
-    uint8_t frame_length;
-    uint8_t frame_type:3;
-    uint8_t security_enabled:1;
-    uint8_t ack_bit:1;
-    uint8_t pan_compression:1;
-    uint8_t frame_version:2;
-    uint8_t dest_addr_mode:2;
-    uint8_t src_addr_mode:2;
-    uint8_t sequence_number;
-    uint8_t lqi;
-    uint8_t rssi;
-} simrf_rx_info_t;
+	typedef struct _simrf_rx_info {
+		uint8_t frame_length;
+		uint8_t frame_type : 3;
+		uint8_t security_enabled : 1;
+		uint8_t ack_bit : 1;
+		uint8_t pan_compression : 1;
+		uint8_t frame_version : 2;
+		uint8_t dest_addr_mode : 2;
+		uint8_t src_addr_mode : 2;
+		uint8_t sequence_number;
+		uint8_t lqi;
+		uint8_t rssi;
+	} simrf_rx_info_t;
 
-/**
- * Based on the TXSTAT register, but "better"
- */
-typedef struct _simrf_tx_info {
-    uint8_t tx_ok:1;
-    uint8_t retries:2;
-    uint8_t channel_busy:1;
-} simrf_tx_info_t;
+	/**
+	 * Based on the TXSTAT register, but "better"
+	 */
+	typedef struct _simrf_tx_info {
+		uint8_t tx_ok : 1;
+		uint8_t retries : 2;
+		uint8_t channel_busy : 1;
+	} simrf_tx_info_t;
 
-/**
- * Set up the platform specific driver methods.
- * CALL THIS FIRST!
- * @param ptrs
- */
-void simrf_setup(struct simrf_platform *ptrs);
+	/**
+	 * Set up the platform specific driver methods.
+	 * CALL THIS FIRST!
+	 * @param ptrs
+	 */
+	void simrf_setup(struct simrf_platform *ptrs);
 
-/**
- * Hard reset via the /RESET line.
- * Resets, and handles the proper delays between pin changes for you.
- * If a reset pin handler wasn't provided, this function has no effect.
- */
-void simrf_hard_reset(void);
+	/**
+	 * Hard reset via the /RESET line.
+	 * Resets, and handles the proper delays between pin changes for you.
+	 * If a reset pin handler wasn't provided, this function has no effect.
+	 */
+	void simrf_hard_reset(void);
 
-/**
- * Politely ask the module to reset itself.
- * You may like to use this instead of hard_reset and save yourself a pin...
- */
-void simrf_soft_reset(void);
+	/**
+	 * Politely ask the module to reset itself.
+	 * You may like to use this instead of hard_reset and save yourself a pin...
+	 */
+	void simrf_soft_reset(void);
 
-/**
- * Resets all registers for proper operation.
- * Call this after any sort of hard reset, or power on.
- */
-void simrf_init(void);
+	/**
+	 * Resets all registers for proper operation.
+	 * Call this after any sort of hard reset, or power on.
+	 */
+	void simrf_init(void);
 
-/**
- * Look up the PAN ID set for ourself
- * @return panid
- */
-uint16_t simrf_pan_read(void);
+	/**
+	 * Look up the PAN ID set for ourself
+	 * @return panid
+	 */
+	uint16_t simrf_pan_read(void);
 
-/**
- * Set the PAN ID to use for sending.
- * @param panid
- */
-void simrf_pan_write(uint16_t panid);
+	/**
+	 * Set the PAN ID to use for sending.
+	 * @param panid
+	 */
+	void simrf_pan_write(uint16_t panid);
 
-/**
- * Enables or disables promiscuous mode.
- * True means "Receive all packet types with good CRC"
- * False means "Discard packet when there is a MAC address mismatch,
- * illegal frame type, dPAN/sPAN or MAC short address mismatch"
- * @param enabled
- */
-void simrf_promiscuous(uint8_t enabled);
+	/**
+	 * Enables or disables promiscuous mode.
+	 * True means "Receive all packet types with good CRC"
+	 * False means "Discard packet when there is a MAC address mismatch,
+	 * illegal frame type, dPAN/sPAN or MAC short address mismatch"
+	 * @param enabled
+	 */
+	void simrf_promiscuous(uint8_t enabled);
 
-/**
- * Set our own short (16bit) address to use for source address.
- * @param address16
- */
-void simrf_address16_write(uint16_t address16);
+	/**
+	 * Set our own short (16bit) address to use for source address.
+	 * @param address16
+	 */
+	void simrf_address16_write(uint16_t address16);
 
-/**
- * Read our own short (16bit) address in use presently.
- * @return 
- */
-uint16_t simrf_address16_read(void);
+	/**
+	 * Read our own short (16bit) address in use presently.
+	 * @return 
+	 */
+	uint16_t simrf_address16_read(void);
 
-/**
- * Set the channel to 12, 2.41Ghz, xbee channel 0xC
- * FIXME - this is hardcoded right now!!
- */
-void mrf_set_channel(void);
+	/**
+	 * Set the channel to 12, 2.41Ghz, xbee channel 0xC
+	 * FIXME - this is hardcoded right now!!
+	 */
+	void mrf_set_channel(void);
 
-/**
- * Simple send 16, with acks, not much of anything.. assumes src16 and local pan only.
- * 
- * @param dest16
- * @param len
- * @param data
- */
-void simrf_send16(uint16_t dest16, uint8_t len, char *data);
+	/**
+	 * Simple send 16, with acks, not much of anything.. assumes src16 and local pan only.
+	 * 
+	 * @param dest16
+	 * @param len
+	 * @param data
+	 */
+	void simrf_send16(uint16_t dest16, uint8_t len, char *data);
 
-/**
- * Call this from within an interrupt handler connected to the MRFs output
- * interrupt pin.  It handles reading in any data from the module, and letting it
- * continue working.
- * I haven't been able to reliably leave interrupts on, and throw away new packets
- * until the old one was read out by client software.  Until I can work that out,
- * I highly recommend disabling interrupts from module in your handle_rx callback.
- * Otherwise, you run the risk of having a new packet trample all over the current packet.
- * (TODO: why is this so hard to get right?!)
- *
- * Note, this is really only a problem in promiscuous mode...
- */
-void simrf_interrupt_handler(void);
+	/**
+	 * Call this from within an interrupt handler connected to the MRFs output
+	 * interrupt pin.  It handles reading in any data from the module, and letting it
+	 * continue working.
+	 * I haven't been able to reliably leave interrupts on, and throw away new packets
+	 * until the old one was read out by client software.  Until I can work that out,
+	 * I highly recommend disabling interrupts from module in your handle_rx callback.
+	 * Otherwise, you run the risk of having a new packet trample all over the current packet.
+	 * (TODO: why is this so hard to get right?!)
+	 *
+	 * Note, this is really only a problem in promiscuous mode...
+	 */
+	void simrf_interrupt_handler(void);
 
-/**
- * Call this function periodically, it will invoke your nominated handlers
- * @param rx_handler
- * @param tx_handler
- */void simrf_check_flags(void (*rx_handler) (simrf_rx_info_t *rxinfo, uint8_t *rxbuffer),
-                     void (*tx_handler) (simrf_tx_info_t *txinfo));
-     
-     /**
-      * Put the module to sleep immediately
-      */
-     void simrf_immediate_sleep(void);
-     
-     /**
-      * Wakeup via register.  This will block for 2ms.
-      */
-     void simrf_immediate_wakeup(void);
+	/**
+	 * Call this function periodically, it will invoke your nominated handlers
+	 * @param rx_handler
+	 * @param tx_handler
+	 */void simrf_check_flags(void (*rx_handler) (simrf_rx_info_t *rxinfo, uint8_t *rxbuffer),
+		void (*tx_handler) (simrf_tx_info_t *txinfo));
+
+	/**
+	 * Put the module to sleep immediately
+	 */
+	void simrf_immediate_sleep(void);
+
+	/**
+	 * Wakeup via register.  This will block for 2ms.
+	 */
+	void simrf_immediate_wakeup(void);
 
 
 #ifdef	__cplusplus
