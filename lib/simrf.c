@@ -217,6 +217,48 @@ void simrf_check_flags(void (*rx_handler) (simrf_rx_info_t *rxinfo, uint8_t *rxb
     }
 }
 
+void simrf_immediate_sleep(void) {
+	uint16_t tmp = mrf_read_short(MRF_WAKECON);
+	tmp |= MRF_WAKECON_IMMWAKE;
+	mrf_write_short(MRF_WAKECON, tmp);
+
+	tmp = mrf_read_short(MRF_SOFTRST);
+	tmp |= MRF_SOFTRST_RSTPWR;
+	mrf_write_short(MRF_SOFTRST, tmp);
+
+	tmp = mrf_read_short(MRF_SLPACK);
+	tmp |= MRF_SLPACK_SLPACK;
+	mrf_write_short(MRF_SLPACK, tmp);
+}
+
+void simrf_rf_reset(void) {
+	// From datasheet... this will trash a wakecount if anyone sent it...
+	// Recommended sequence RFCTL = 0x06 (reset mode) then RFCTL = 0x02 (transmit mode)
+	uint16_t tmp = mrf_read_short(MRF_RFCTL);
+//	tmp |= 0x6;
+	tmp |= MRF_RFCTL_RFRST;
+	mrf_write_short(MRF_RFCTL, tmp);
+	tmp &= ~MRF_RFCTL_RFRST;
+//	tmp &= ~(0x6);
+//	tmp |= 0x2;
+	mrf_write_short(MRF_RFCTL, tmp);
+	// TODO or.... user warning... wait 192uSec after this...
+}
+
+void simrf_immediate_wakeup(void) {
+	uint16_t tmp = mrf_read_short(MRF_WAKECON);
+	mrf_write_short(MRF_WAKECON, tmp);
+	tmp |= MRF_WAKECON_REGWAKE;
+	mrf_write_short(MRF_WAKECON, tmp);
+	platform.delay_ms(1);
+	tmp &= ~MRF_WAKECON_REGWAKE;
+	mrf_write_short(MRF_WAKECON, tmp);
+	
+	//This seems to make it only sometimes wakeup.  Could be timing, could just be bullshit
+//	simrf_rf_reset();
+	platform.delay_ms(2);
+}
+
 /// PRIVATE INTERNALS
 static uint8_t mrf_read_short(uint8_t address) {
     platform.select(true);

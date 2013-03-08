@@ -57,6 +57,8 @@ extern "C" {
 #define MRF_ESLOTG67 0x20
 #define MRF_TXPEND 0x21
 #define MRF_WAKECON 0x22
+#define MRF_WAKECON_IMMWAKE	(1<<7)
+#define MRF_WAKECON_REGWAKE	(1<<6)
 #define MRF_FRMOFFSET 0x23
 // TXSTAT: TX MAC STATUS REGISTER (ADDRESS: 0x24)
 #define MRF_TXSTAT 0x24
@@ -75,6 +77,9 @@ extern "C" {
 #define MRF_HSYMTMRL 0x28
 #define MRF_HSYMTMRH 0x29
 #define MRF_SOFTRST 0x2A
+#define MRF_SOFTRST_RSTPWR	(1<<2)
+#define MRF_SOFTRST_RSTBB	(1<<1)
+#define MRF_SOFTRST_RSTMAC	(1<<0)
 //#define MRF_Reserved 0x2B
 #define MRF_SECCON0 0x2C
 #define MRF_SECCON1 0x2D
@@ -86,7 +91,9 @@ extern "C" {
 #define MRF_GPIO 0x33
 #define MRF_TRISGPIO 0x34
 #define MRF_SLPACK 0x35
+#define MRF_SLPACK_SLPACK	(1<<7)
 #define MRF_RFCTL 0x36
+#define MRF_RFCTL_RFRST		(1<<2)
 #define MRF_SECCR2 0x37
 #define MRF_BBREG0 0x38
 #define MRF_BBREG1 0x39
@@ -288,6 +295,16 @@ void simrf_interrupt_handler(void);
  * @param tx_handler
  */void simrf_check_flags(void (*rx_handler) (simrf_rx_info_t *rxinfo, uint8_t *rxbuffer),
                      void (*tx_handler) (simrf_tx_info_t *txinfo));
+     
+     /**
+      * Put the module to sleep immediately
+      */
+     void simrf_immediate_sleep(void);
+     
+     /**
+      * Wakeup via register.  This will block for 2ms.
+      */
+     void simrf_immediate_wakeup(void);
 
 
 #ifdef	__cplusplus
