@@ -8,13 +8,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/f1/rcc.h>
 #include <libopencm3/stm32/f1/gpio.h>
-#include <libopencm3/stm32/nvic.h>
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/spi.h>
-#include <libopencm3/stm32/systick.h>
 
 
 #include "simrf.h"

@@ -2,10 +2,10 @@
 // false.ekta.is
 // BSD/MIT Licensed.
 
+#include <libopencm3/cm3/nvic.h>
+#include <libopencm3/cm3/systick.h>
 #include <libopencm3/stm32/spi.h>
-#include <libopencm3/stm32/nvic.h>
 #include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/systick.h>
 #include <libopencm3/stm32/f1/gpio.h>
 #include <libopencm3/stm32/f1/rcc.h>
 
@@ -77,7 +77,7 @@ void usart_setup(void) {
     gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_10_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO2);
 
     /* Setup UART parameters. */
-    usart_set_baudrate(USART2, 19200);
+    usart_set_baudrate(USART2, 115200);
     usart_set_databits(USART2, 8);
     usart_set_stopbits(USART2, USART_STOPBITS_1);
     usart_set_parity(USART2, USART_PARITY_NONE);
@@ -218,7 +218,7 @@ int main(void) {
         // about a second or so...
         if (roughness > 0x50000) {
             printf("txxxing... %d\n", i++);
-            simrf_send16(0x1, 4, "abcd");
+            simrf_send16(0x4202, 4, "abcd");
             roughness = 0;
         }
     }
