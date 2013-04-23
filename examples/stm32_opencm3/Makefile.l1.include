@@ -32,24 +32,24 @@ GDB		= $(PREFIX)-gdb
 #OPENCM3_DIR     ?= ../../../../..
 OPENCM3_DIR=/home/karlp/src/libopencm3
 
-
 ARCH_FLAGS      = -mcpu=cortex-m3 -mthumb -msoft-float
-CFLAGS		+= -g -Os -Wall -Wextra \
-		   -fno-common $(ARCH_FLAGS) -MD -DSTM32F1
+CFLAGS		+= -ggdb3 -Os -Wall -Wextra \
+		   -fno-common $(ARCH_FLAGS) -MD -DSTM32L1
 LDSCRIPT	?= $(BINARY).ld
-LDFLAGS		+= -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group \
+LDFLAGS		+= -ggdb3 -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group \
 		   -T$(LDSCRIPT) -nostartfiles -Wl,--gc-sections \
 		   $(ARCH_FLAGS) -mfix-cortex-m3-ldrd
 
 ifneq ($(OPENCM3_DIR),)
 CFLAGS          += -I$(OPENCM3_DIR)/include
-LDFLAGS         += -L$(OPENCM3_DIR)/lib -L$(OPENCM3_DIR)/lib/stm32/f1
+LDFLAGS         += -L$(OPENCM3_DIR)/lib -L$(OPENCM3_DIR)/lib/stm32/l1
 SCRIPT_DIR      = $(OPENCM3_DIR)/share
 else
 SCRIPT_DIR      = $(shell dirname $(shell readlink -f $(shell which $(PREFIX)-gcc)))/../$(PREFIX)/share
 endif
 
-OBJS		+= $(BINARY).o
+OBJDIR=obj-$(BINARY)
+OBJS:=$(TARGET_SOURCES:%.c=$(OBJDIR)/%.o)
 
 OOCD		?= openocd
 OOCD_INTERFACE	?= flossjtag
@@ -100,16 +100,18 @@ flash: $(BINARY).flash
 ifeq ($(OPENCM3_DIR),)
 %.elf: $(OBJS) #$(LDSCRIPT)
 else
-%.elf: $(OBJS) #$(LDSCRIPT) $(OPENCM3_DIR)/lib/stm32/f1/libopencm3_stm32f1.a
+%.elf: $(OBJS) #$(LDSCRIPT) $(OPENCM3_DIR)/lib/stm32/l1/libopencm3_stm32l1.a
 endif
 	@#printf "  LD      $(subst $(shell pwd)/,,$(@))\n"
-	$(Q)$(LD) -o $(*).elf $(OBJS) -lopencm3_stm32f1 $(LDFLAGS)
+	$(Q)$(LD) -o $(*).elf $(OBJS) -lopencm3_stm32l1 $(LDFLAGS)
 
-%.o: %.c Makefile
+$(OBJDIR)/%.o: %.c Makefile
 	@#printf "  CC      $(subst $(shell pwd)/,,$(@))\n"
+	@mkdir -p $(dir $@)
 	$(Q)$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
+	$(Q)rm -rf $(OBJDIR)
 	$(Q)rm -f *.o
 	$(Q)rm -f *.d
 	$(Q)rm -f *.elf

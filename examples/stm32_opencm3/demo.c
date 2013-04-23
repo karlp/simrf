@@ -2,22 +2,22 @@
 // false.ekta.is
 // BSD/MIT Licensed.
 
+#include <errno.h>
+#include <stdio.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/l1/rcc.h>
 
-#include <errno.h>
-#include <stdio.h>
 #include "simrf.h"
-#include "simrf_plat.h"
-
-#define LED_DISCO_GREEN_PORT GPIOB
-#define LED_DISCO_GREEN_PIN GPIO7
-#define LED_DISCO_BLUE_PORT GPIOB
-#define LED_DISCO_BLUE_PIN GPIO6
+#if defined (STM32L1)
+#include <libopencm3/stm32/l1/rcc.h>
+#include "platform_l1.h"
+#elif defined (STM32F1)
+#include <libopencm3/stm32/f1/rcc.h>
+#include "platform_f1.h"
+#endif
 
 static volatile int64_t ksystick;
 
@@ -57,18 +57,6 @@ int _write(int file, char *ptr, int len) {
     return -1;
 }
 
-void clock_setup(void) {
-    /* Enable clocks on all the peripherals we are going to use. */
-    rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_SPI2EN);
-    rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_USART2EN);
-    rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_SYSCFGEN);
-
-    // GPIOS... spi2 and usart2 are on port A & B 
-	rcc_peripheral_enable_clock(&RCC_AHBENR, RCC_AHBENR_GPIOAEN);
-	rcc_peripheral_enable_clock(&RCC_AHBENR, RCC_AHBENR_GPIOBEN);
-    
-}
-
 void systick_setup(void) {
     systick_set_clocksource(STK_CTRL_CLKSOURCE_AHB_DIV8);  // 24meg / 8 = 3Mhz
     // one interrupt per ms..
@@ -79,12 +67,7 @@ void systick_setup(void) {
 
 void usart_setup(void) {
 
-        /* Setup GPIO pins for USART2 transmit. */
-        gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2);
-
-        /* Setup USART2 TX pin as alternate function. */
-        gpio_set_af(GPIOA, GPIO_AF7, GPIO2);
-
+	usart_setup_platform();
 
     /* Setup UART parameters. */
     usart_set_baudrate(USART2, 115200);
@@ -101,13 +84,9 @@ void usart_setup(void) {
 
 
 void init(void) {
-    rcc_clock_setup_pll(&clock_config[CLOCK_VRANGE1_HSI_PLL_24MHZ]);
     clock_setup();
     systick_setup();
     usart_setup();
-        /* green led for ticking, blue for button feedback */
-        gpio_mode_setup(LED_DISCO_GREEN_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_DISCO_GREEN_PIN);
-        gpio_mode_setup(LED_DISCO_BLUE_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_DISCO_BLUE_PIN);
 
     platform_simrf_init();
     // interrupt pin from mrf

@@ -1,7 +1,0 @@
-MRF24J40MA module wired to stm32VL discovery board as follows.
-
-SPI on SPI1 (PA5,6,7)
-ChipSelect on PA4
-Reset on PC1
-Interrupt on PC0
-usart2 for debug on PA2 (tx)/PA3 (rx)

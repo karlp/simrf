@@ -17,13 +17,13 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 V=1
-BINARY = demo
-OBJS:=simrf_plat.o
+BINARY = demo_f1
+TARGET_SOURCES:=demo.c platform_f1.c
 SIMRF=../../lib
 CFLAGS+=-I$(SIMRF) -lsimrf
 LDFLAGS+=-L$(SIMRF) -lsimrf
 
 LDSCRIPT = stm32f100xb.ld
 
-include Makefile.include
+include Makefile.f1.include
 

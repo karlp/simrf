@@ -1,0 +1,20 @@
+This demo runs on either the STM32VL or STM32L discovery boards.
+In both cases, there is a (TX only) debug usart on PA2 (115200@8n1)
+
+** STM32VL discovery board (STM32F100)
+
+MRF24J40MA module wired as follows.
+
+SPI on SPI1 (PA5,6,7)
+ChipSelect on PA4
+Reset on PC1
+Interrupt on PC0
+
+** STM32L discovery board (STM32L15x)
+
+MRF24J40MA module wired as follows.
+
+SPI on SPI2 (PB13,14,15)
+ChipSelect on PB12
+Reset not connected (tied high)
+Interrupt on PB2

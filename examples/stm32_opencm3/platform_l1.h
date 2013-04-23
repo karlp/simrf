@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+	void clock_setup(void);
+	void usart_setup_platform(void);
     /**
      * You can also just set up the function pointers yourself.
      */
