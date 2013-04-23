@@ -43,9 +43,6 @@ void clock_setup(void)
 	// GPIOS... spi2 and usart2 are on port A & B 
 	rcc_peripheral_enable_clock(&RCC_AHBENR, RCC_AHBENR_GPIOAEN);
 	rcc_peripheral_enable_clock(&RCC_AHBENR, RCC_AHBENR_GPIOBEN);
-
-
-
 }
 
 void usart_setup_platform(void)
@@ -120,7 +117,7 @@ void spi_setup(void)
 	gpio_mode_setup(MRF_SELECT_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, MRF_SELECT_PIN);
 
 	/* Setup SPI parameters. */
-	spi_init_master(MRF_SPI, SPI_CR1_BAUDRATE_FPCLK_DIV_16, SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE,
+	spi_init_master(MRF_SPI, SPI_CR1_BAUDRATE_FPCLK_DIV_4, SPI_CR1_CPOL_CLK_TO_0_WHEN_IDLE,
 		SPI_CR1_CPHA_CLK_TRANSITION_1, SPI_CR1_DFF_8BIT, SPI_CR1_MSBFIRST);
 	/* Ignore the stupid NSS pin. */
 	spi_enable_software_slave_management(MRF_SPI);
