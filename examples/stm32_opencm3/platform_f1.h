@@ -14,12 +14,12 @@ extern "C" {
 
 	void clock_setup(void);
 	void usart_setup_platform(void);
-    /**
-     * You can also just set up the function pointers yourself.
-     */
-void platform_simrf_init(void);
-void platform_mrf_interrupt_disable(void);
-void platform_mrf_interrupt_enable(void);
+	/**
+	 * You can also just set up the function pointers yourself.
+	 */
+	void platform_simrf_init(void);
+	void platform_mrf_interrupt_disable(void);
+	void platform_mrf_interrupt_enable(void);
 
 #ifdef	__cplusplus
 }
