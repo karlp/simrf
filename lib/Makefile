@@ -9,7 +9,7 @@ INSTALLDIR=..
 
 CFLAGS+=-DNDEBUG
 CFLAGS+=-std=gnu99
-CFLAGS+=-Wall -Os -g
+CFLAGS+=-Wall -Os -ggdb3
 CFLAGS+=-ffunction-sections -fdata-sections
 CFLAGS+=-Wstrict-prototypes
 
