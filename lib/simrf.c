@@ -182,6 +182,7 @@ void simrf_interrupt_handler(void)
 
 		uint16_t frame_control = mrf_read_long(0x301);
 		frame_control |= mrf_read_long(0x302) << 8;
+		mrf_rx_info.fc_raw = frame_control;
 		mrf_rx_info.frame_type = frame_control & 0x07;
 		mrf_rx_info.pan_compression = (frame_control >> 6) & 0x1;
 		mrf_rx_info.ack_bit = (frame_control >> 5) & 0x1;

@@ -179,7 +179,35 @@ void handle_rx(simrf_rx_info_t *rxinfo, uint8_t *rx_buffer)
 	for (; i < rxinfo->frame_length; i++) {
 		printf("%02x,", rx_buffer[i]);
 	}
-	printf("\nLQI/RSSI=%d/%d\n", rxinfo->lqi, rxinfo->rssi);
+	printf("\nLQI/RSSI=%x/%x\n", rxinfo->lqi, rxinfo->rssi);
+	handle_rx_snif(rxinfo, rx_buffer);
+}
+
+static void io_arch_writeb(uint8_t b)
+{
+	usart_send_blocking(USART2, b);
+}
+
+static const uint8_t magic[] = {0x53, 0x6E, 0x69, 0x66}; /* Snif */
+
+void handle_rx_snif(simrf_rx_info_t *rxinfo, uint8_t *rx_buffer)
+{
+	int i;
+	io_arch_writeb(magic[0]);
+	io_arch_writeb(magic[1]);
+	io_arch_writeb(magic[2]);
+	io_arch_writeb(magic[3]);
+	io_arch_writeb(rxinfo->frame_length + 5);
+	io_arch_writeb(rxinfo->fc_raw & 0xff);
+	io_arch_writeb(rxinfo->fc_raw >> 8);
+	io_arch_writeb(rxinfo->sequence_number);
+	for (i = 0; i < rxinfo->frame_length; ++i) {
+		io_arch_writeb(rx_buffer[i]);
+	}
+	io_arch_writeb(rxinfo->rssi);
+	// might be 4.  Sneaky simrf was hiding the FCS
+	io_arch_writeb(0);
+	io_arch_writeb(0);
 }
 
 void handle_tx(simrf_tx_info_t *txinfo)
@@ -210,13 +238,14 @@ int main(void)
 	uint32_t roughness = 0;
 	while (1) {
 		roughness++;
-		simrf_check_flags(&handle_rx, &handle_tx);
+		//simrf_check_flags(&handle_rx, &handle_tx);
+		simrf_check_flags(&handle_rx, NULL);
 		// about a second or so...
-		if (roughness > 0x50000) {
-			printf("txxxing... %d\n", i++);
-			simrf_send16(0x4202, 4, "abcd");
-			roughness = 0;
-		}
+		//		if (roughness > 0x50000) {
+		//			printf("txxxing... %d\n", i++);
+		//			simrf_send16(0x4202, 4, "abcd");
+		//			roughness = 0;
+		//		}
 	}
 }
 
