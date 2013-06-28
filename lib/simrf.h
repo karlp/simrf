@@ -179,6 +179,7 @@ extern "C" {
 	};
 
 	typedef struct _simrf_rx_info {
+		uint16_t fc_raw;
 		uint8_t frame_length;
 		uint8_t frame_type : 3;
 		uint8_t security_enabled : 1;

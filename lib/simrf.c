@@ -178,10 +178,12 @@ void simrf_interrupt_handler(void)
 		flag_got_rx++;
 		// read out the packet data...
 		mrf_write_short(MRF_BBREG1, 0x04); // RXDECINV - disable receiver
-		uint8_t frame_length = mrf_read_long(0x300); // read start of rxfifo for
+		// m + n + 2 from datasheet
+		uint8_t frame_length = mrf_read_long(0x300);
 
 		uint16_t frame_control = mrf_read_long(0x301);
 		frame_control |= mrf_read_long(0x302) << 8;
+		mrf_rx_info.fc_raw = frame_control;
 		mrf_rx_info.frame_type = frame_control & 0x07;
 		mrf_rx_info.pan_compression = (frame_control >> 6) & 0x1;
 		mrf_rx_info.ack_bit = (frame_control >> 5) & 0x1;
@@ -192,13 +194,12 @@ void simrf_interrupt_handler(void)
 
 		// only three bytes have been removed, frame control and sequence id
 		// the data starts at 4 though, because byte 0 was the mrf length
-		// also hide the FCS bytes, even though we've copied them into the rx buffer
 		for (int i = 0; i <= frame_length - 4; i++) {
 			mrf_rx_buf[i] = mrf_read_long(0x304 + i);
 		}
 		mrf_rx_info.frame_length = frame_length - 3 - 2;
-		mrf_rx_info.lqi = mrf_read_long(0x300 + frame_length + 1);
-		mrf_rx_info.rssi = mrf_read_long(0x300 + frame_length + 2);
+		mrf_rx_info.lqi = mrf_read_long(0x301 + frame_length);
+		mrf_rx_info.rssi = mrf_read_long(0x301 + frame_length + 1);
 
 		mrf_write_short(MRF_BBREG1, 0x00); // RXDECINV - enable receiver
 	}
