@@ -1,5 +1,8 @@
 This example is compatible with https://github.com/g-oikonomou/sensniff
 
+Note, this doesn't support setting/getting the channel
+
+
 This demo runs on either the STM32VL or STM32L discovery boards.
 
 ** STM32VL discovery board (STM32F100)
