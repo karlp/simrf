@@ -62,7 +62,7 @@ int _write(int file, char *ptr, int len)
 
 void systick_setup(void)
 {
-	systick_set_clocksource(STK_CTRL_CLKSOURCE_AHB_DIV8); // 24meg / 8 = 3Mhz
+	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8); // 24meg / 8 = 3Mhz
 	// one interrupt per ms..
 	systick_set_reload(3000);
 	systick_interrupt_enable();
